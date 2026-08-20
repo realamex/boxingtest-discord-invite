@@ -22,3 +22,5 @@ GitHub’s file page (`…/blob/…`) is HTML, not JSON. The client must GET the
 3. Copy the address bar (`raw.githubusercontent.com/…`). That URL is what belongs in the client config.
 
 Do not use the `blob` page URL as the fetch address.
+
+If you changed the workflow action script, don't forget rerun it and delete old running workflow!
