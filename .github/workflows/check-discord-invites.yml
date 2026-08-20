@@ -1,9 +1,9 @@
-# Draft only. Copy into the public host repo. Do not put this in Boxing/.github/.
+# Draft only. Copy into the public host repo. Do not put this in YourGameProject!
 name: Check Discord invites
-
+# schedule time rule: UTC each digit for "minut hour day month week" . see https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
 on:
   schedule:
-    - cron: "0 6 * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 jobs:
