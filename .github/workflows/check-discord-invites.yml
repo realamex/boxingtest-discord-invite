@@ -36,26 +36,11 @@ jobs:
           }
 
           json_field() {
-            python3 - "$1" "$2" <<'PY'
-          import json, sys
-          path, key = sys.argv[1], sys.argv[2]
-          with open(path, encoding="utf-8") as f:
-              data = json.load(f)
-          val = data.get(key, "")
-          if val is None:
-              val = ""
-          print(str(val).strip())
-          PY
+            python3 -c 'import json,sys; d=json.load(open(sys.argv[1],encoding="utf-8")); v=d.get(sys.argv[2],"") or ""; print(str(v).strip())' "$1" "$2"
           }
 
           is_unknown_invite() {
-            printf '%s' "$1" | python3 -c 'import json,sys
-raw=sys.stdin.read()
-try:
-    data=json.loads(raw)
-except Exception:
-    sys.exit(1)
-sys.exit(0 if data.get("code")==10006 else 1)'
+            printf '%s' "$1" | python3 -c 'import json,sys; d=json.loads(sys.stdin.read()); raise SystemExit(0 if d.get("code")==10006 else 1)'
           }
 
           expired=0
