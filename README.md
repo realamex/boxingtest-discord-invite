@@ -1,22 +1,24 @@
-# boxingtest-discord-invite
+# Invite JSON
 
-Public host for BlitzBoxing Discord invite JSON + Actions. **Not** the Boxing game repo. Do **not** copy into `Boxing/.github/`.
+This repo hosts one public JSON file: [`discord-invite.json`](./discord-invite.json).  
+That file is the source of truth for the three invite links. Do not copy the URLs into this README.
 
-Repo: https://github.com/realamex/boxingtest-discord-invite
+## Fields
 
-| File | Role |
-|------|------|
-| `discord-invite.json` | Client GET (raw) |
-| `.github/workflows/check-discord-invites.yml` | Daily UTC 06:00 + `workflow_dispatch`; User-Agent `BlitzBoxing-InviteCheck/1.0` |
+| Key | Meaning |
+|-----|---------|
+| `setting` | Invite opened from settings |
+| `lose` | Invite opened after a defeat |
+| `win` | Invite opened after a victory |
 
-Invite codes (aligned with game SO):
+Each value must be a full `https://` invite URL. Unknown keys are ignored.
 
-- setting `VwQW2ht9vp`
-- lose `dPJjgE46hX`
-- win `Y8AMQJVEtK`
+## Raw URL (for the client)
 
-Client `remoteJsonUrl` (raw, B-06b):
+GitHub’s file page (`…/blob/…`) is HTML, not JSON. The client must GET the **raw** file:
 
-`https://raw.githubusercontent.com/realamex/boxingtest-discord-invite/main/discord-invite.json`
+1. Open [`discord-invite.json`](./discord-invite.json) on GitHub.
+2. Click **Raw**.
+3. Copy the address bar (`raw.githubusercontent.com/…`). That URL is what belongs in the client config.
 
-After first push: enable Actions; Watch failure mail for the GitHub user who created this workflow.
+Do not use the `blob` page URL as the fetch address.
