@@ -10,7 +10,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Verify invite codes via Discord API
         env:
           DISCORD_UA: BlitzBoxing-InviteCheck/1.0
