@@ -1,0 +1,102 @@
+# Draft only. Copy into the public host repo. Do not put this in Boxing/.github/.
+name: Check Discord invites
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify invite codes via Discord API
+        env:
+          DISCORD_UA: BlitzBoxing-InviteCheck/1.0
+        run: |
+          set -euo pipefail
+          JSON="discord-invite.json"
+          if [ ! -f "$JSON" ]; then
+            echo "missing $JSON"
+            exit 1
+          fi
+
+          extract_code() {
+            local url="$1"
+            url="${url%%#*}"
+            url="${url%%\?*}"
+            # trim
+            url="$(printf '%s' "$url" | sed 's/[[:space:]]*$//;s/^[[:space:]]*//')"
+            while [ "${url%/}" != "$url" ]; do
+              url="${url%/}"
+            done
+            local code="${url##*/}"
+            printf '%s' "$code"
+          }
+
+          json_field() {
+            python3 - "$1" "$2" <<'PY'
+          import json, sys
+          path, key = sys.argv[1], sys.argv[2]
+          with open(path, encoding="utf-8") as f:
+              data = json.load(f)
+          val = data.get(key, "")
+          if val is None:
+              val = ""
+          print(str(val).strip())
+          PY
+          }
+
+          is_unknown_invite() {
+            printf '%s' "$1" | python3 -c 'import json,sys
+raw=sys.stdin.read()
+try:
+    data=json.loads(raw)
+except Exception:
+    sys.exit(1)
+sys.exit(0 if data.get("code")==10006 else 1)'
+          }
+
+          expired=0
+          for key in setting lose win; do
+            url="$(json_field "$JSON" "$key")"
+            code="$(extract_code "$url")"
+            if [ -z "$code" ]; then
+              echo "$key: empty code (unverified, not 10006) url=$url"
+              continue
+            fi
+            echo "$key: checking code=$code"
+            http_code="0"
+            body="$(mktemp)"
+            set +e
+            http_code="$(curl -sS -o "$body" -w "%{http_code}" \
+              --max-time 20 \
+              -H "User-Agent: ${DISCORD_UA}" \
+              "https://discord.com/api/v10/invites/${code}")"
+            curl_st=$?
+            set -e
+            payload="$(cat "$body" || true)"
+            rm -f "$body"
+            if [ "$curl_st" -ne 0 ]; then
+              echo "$key: curl failed st=$curl_st (unverified)"
+              continue
+            fi
+            if [ "$http_code" = "200" ]; then
+              echo "$key: ok"
+              continue
+            fi
+            if [ "$http_code" = "404" ] && is_unknown_invite "$payload"; then
+              echo "$key: expired (404 + code 10006)"
+              expired=1
+              continue
+            fi
+            echo "$key: http=$http_code unverified (not 10006)"
+          done
+
+          if [ "$expired" -eq 1 ]; then
+            echo "one or more invites unknown (10006)"
+            exit 1
+          fi
+          echo "no confirmed expired invites (exit 0, including all-unverified)"
+          exit 0
